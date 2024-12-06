@@ -84,7 +84,6 @@ function Is-WingetAppInstalled {
     param (
         [string]$appName
     )
-    Log-Event "DEBUG: Checking if winget app is installed with Name: $appName"
     $app = winget list --name $appName -q | Select-String -Pattern $appName
     return $app -ne $null
 }

@@ -24,7 +24,7 @@
     2023-12-01: Updated to include detection of Win32 apps.
     2023-12-02: Updated to return a status code indicating whether any apps were found.
     2023-12-03: Updated to include a timeout for uninstall operations
-
+    2023-12-06: Updated to include detection of winget apps
 #>
 
 # Define an array of app names to check
@@ -51,11 +51,21 @@ $appNames = @(
     "Microsoft.ZuneMusic",
     "Microsoft.ZuneVideo",
     "MicrosoftTeams",
-    "Mozilla Firefox"
+    "Mozilla Firefox",
+    "Microsoft OneDrive"
 )
 
 # Initialize a variable to track if any apps are found
 $appsFound = $false
+
+# Function to check if an app is installed using winget
+function Is-WingetAppInstalled {
+    param (
+        [string]$appName
+    )
+    $app = winget list --name $appName -q | Select-String -Pattern $appName
+    return $app -ne $null
+}
 
 # Function to check if an AppX Provisioned Package is installed
 function Is-AppXProvisionedPackageInstalled {
@@ -95,6 +105,7 @@ function Is-Win32AppInstalled {
 
     foreach ($userSID in $userSIDs) {
         $appPaths += "HKU:\$userSID\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        $appPaths += "HKU:\$userSID\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
     }
 
     foreach ($path in $appPaths) {
@@ -107,18 +118,26 @@ function Is-Win32AppInstalled {
 }
 
 # Loop through the array of app names
+$foundApps = $false
 foreach ($appName in $appNames) {
-    if (Is-AppXProvisionedPackageInstalled -appName $appName) {
-        Write-Output "Detected AppX Provisioned Package: $appName"
-        $appsFound = $true
+    if (Is-WingetAppInstalled -appName $appName) {
+        Log-Event "Found winget app: $appName"
+        $foundApps = $true
+    } elseif (Is-AppXProvisionedPackageInstalled -appName $appName) {
+        Log-Event "Found AppX Provisioned Package: $appName"
+        $foundApps = $true
+        # Check and log AppX Package if it exists
+        if (Is-AppXPackageInstalled -appName $appName) {
+            Log-Event "Found AppX Package: $appName"
+        }
     } elseif (Is-AppXPackageInstalled -appName $appName) {
-        Write-Output "Detected AppX Package: $appName"
-        $appsFound = $true
+        Log-Event "Found AppX Package: $appName"
+        $foundApps = $true
     } elseif (Is-Win32AppInstalled -appName $appName) {
-        Write-Output "Detected Win32 App: $appName"
-        $appsFound = $true
+        Log-Event "Found Win32 App: $appName"
+        $foundApps = $true
     } else {
-        Write-Output "App not found: $appName"
+        Log-Event "App not found: $appName"
     }
 }
 
