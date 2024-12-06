@@ -126,6 +126,7 @@ function Is-Win32AppInstalled {
 
     foreach ($userSID in $userSIDs) {
         $appPaths += "HKU:\$userSID\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        $appPaths += "HKU:\$userSID\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
     }
 
     foreach ($path in $appPaths) {
