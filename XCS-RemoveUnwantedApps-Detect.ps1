@@ -23,6 +23,7 @@
     2023-11-25: Updated to include additional app names.
     2023-12-01: Updated to include detection of Win32 apps.
     2023-12-02: Updated to return a status code indicating whether any apps were found.
+    2023-12-03: Updated to include a timeout for uninstall operations
 
 #>
 
