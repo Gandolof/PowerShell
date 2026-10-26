@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 # ============================================================
-# St1Biokraft - Unified Autopilot Language and Time Zone Configuration
+# Unified Autopilot Language and Time Zone Configuration
 # Windows 11 / Intune Win32 / SYSTEM / 64-bit
 #
 # Languages: da-DK, fi-FI, nb-NO, sv-SE
@@ -30,8 +30,8 @@ $InstallError = ''
 
 $APPath = "HKLM:\SOFTWARE\Microsoft\Provisioning\Diagnostics\Autopilot"
 $APCachePath = "HKLM:\SOFTWARE\Microsoft\Provisioning\AutopilotPolicyCache"
-$RegPath = "HKLM:\SOFTWARE\St1Biokraft"
-$LogFolder = "$env:ProgramData\St1Biokraft\Logs"
+$RegPath = "HKLM:\SOFTWARE\COMPANY"
+$LogFolder = "$env:ProgramData\COMPANY\Logs"
 $LogFile = Join-Path $LogFolder "AutopilotLanguage.log"
 
 $Countries = @{
@@ -89,7 +89,7 @@ try {
         -ErrorAction Stop | Out-Null
 
     Write-Log "=========================================="
-    Write-Log "Starting St1Biokraft Autopilot language setup"
+    Write-Log "Starting Autopilot language setup"
     Write-Log "OS build: $OSBuild; installation method: $InstallMethod"
     Write-Log "Language package folder: $LanguagesFolder"
 
