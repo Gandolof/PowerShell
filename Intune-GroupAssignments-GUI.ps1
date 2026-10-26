@@ -110,6 +110,33 @@ function Get-AssignmentPath([string]$basePath, $item) {
         default { return $null }
     }
 }
+# Cache filter names to avoid repeated Graph requests
+$filterNameCache = @{}
+function Get-FilterName([string]$filterId) {
+    if (-not $filterId) { return '' }
+
+    if ($filterNameCache.ContainsKey($filterId)) {
+        return $filterNameCache[$filterId]
+    }
+
+    $name = $filterId
+
+    try {
+        $response = Invoke-MgGraphRequest -Method GET `
+            -Uri "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/$filterId" `
+            -ErrorAction Stop
+
+        if ($response.displayName) {
+            $name = [string]$response.displayName
+        }
+    }
+    catch {
+        # Keep GUID if filter cannot be resolved
+    }
+
+    $filterNameCache[$filterId] = $name
+    return $name
+}
 function Find-Group([string]$groupText) {
     # Built-in Intune targets are not Entra ID groups.
     if ($groupText.Trim() -ieq 'All Users') {
@@ -214,7 +241,11 @@ try {
                 if (-not $intent) { $intent = 'Apply' }
                 $filter = ''
                 if ($assignmentTarget.deviceAndAppManagementAssignmentFilterId) {
-                    $filter = "$($assignmentTarget.deviceAndAppManagementAssignmentFilterType): $($assignmentTarget.deviceAndAppManagementAssignmentFilterId)"
+                    $filterId = [string]$assignmentTarget.deviceAndAppManagementAssignmentFilterId
+                    $filterName = Get-FilterName $filterId
+                    $filterType = [string]$assignmentTarget.deviceAndAppManagementAssignmentFilterType
+
+                    $filter = "${filterType}: $filterName"
                 }
                 $platform = [string]$item['@odata.type'] -replace '^#?microsoft\.graph\.', ''
                 if (-not $platform) { $platform = [string]$item.platforms }
