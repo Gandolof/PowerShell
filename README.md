@@ -105,7 +105,7 @@ Requires `Microsoft.Graph.Authentication` and the Graph permission `DeviceManage
 
 **File:** [Intune-GroupAssignments-GUI.ps1](./Intune-GroupAssignments-GUI.ps1)
 
-The answer to the question "what does this group do?". Windows/WPF application to inspect **direct assignments** of Intune configurations, apps, scripts, remediations, and related workloads. Search by an Entra group's exact display name or GUID, or type **`All Users`** or **`All Devices`** to search those built-in Intune assignment targets.
+The answer to the question "what is this group for?". Windows/WPF application to inspect **direct assignments** of Intune configurations, apps, scripts, remediations, and related workloads. Search by an Entra group's exact display name or GUID, or type **`All Users`** or **`All Devices`** to search those built-in Intune assignment targets.
 
 Features include:
 
