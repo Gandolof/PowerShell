@@ -40,8 +40,6 @@ This repository is a collection of standalone administrative scripts rather than
 | Script | Purpose |
 | --- | --- |
 | [GatherEventLogEvents.ps1](./GatherEventLogEvents.ps1) | Collect relevant WDAC / Code Integrity and AppLocker audit events for investigation. |
-| [RunAsSystem.ps1](./RunAsSystem.ps1) | Display a Windows Forms launcher for a configurable list of executables. **Does not itself elevate to SYSTEM.** |
-| [RunWithServiceUI.ps1](./RunWithServiceUI.ps1) | Start `Deploy-Application.exe` with ServiceUI when a user session is available, or without it when unattended. |
 
 ## Script details
 
