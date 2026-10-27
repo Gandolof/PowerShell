@@ -82,6 +82,26 @@ The CSV includes fields such as `Name`, `Type`, `Platform`, `SettingsScope`, `As
 
 The default destination is `Intune-Inventory.csv` next to the script. Graph endpoint failures are reported as warnings; if errors were collected, a corresponding `.errors.txt` file is created. Uses Microsoft Graph beta endpoints. **Read-only.**
 
+### Application inventory
+
+**File:** [Application-Inventory.ps1](./Application-Inventory.ps1)
+
+Exports a consolidated inventory of **discovered applications** from Microsoft Intune using Microsoft Graph. Groups applications by name and platform, combines detected versions, and counts unique devices to prevent duplicate installations from inflating totals.
+
+Features include:
+
+- Application name, version, publisher, platform, and device count.
+- Consolidation of multiple application versions into a single entry.
+- Unique device counts across application versions.
+- Automatic polling of Microsoft Graph export jobs.
+- UTF-8 CSV export using semicolon delimiters.
+
+```powershell
+.\Application-Inventory.ps1 -OutputPath "C:\Reports\Application-Inventory.csv"
+```
+
+Requires `Microsoft.Graph.Authentication` and the Graph permission `DeviceManagementApps.ReadWrite.All`. Uses the Graph beta reporting endpoint (`AppInvRawData`). Default output is `DiscoveredApps-Grouped.csv` in the script directory. **Read-only.**
+
 ### Intune group assignment explorer
 
 **File:** [Intune-GroupAssignments-GUI.ps1](./Intune-GroupAssignments-GUI.ps1)
