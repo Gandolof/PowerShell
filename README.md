@@ -16,7 +16,8 @@ This repository is a collection of standalone administrative scripts rather than
 | [Export-IntuneDeviceInventory.ps1](./Export-IntuneDeviceInventory.ps1) | Export an Intune-managed device inventory across Windows, macOS, iOS/iPadOS, and Android, including platform-specific details. |
 | [Export-IntuneWindowsInventory.ps1](./Export-IntuneWindowsInventory.ps1) | Export Windows device data enriched with Windows Autopilot, Windows 11 readiness, and health-attestation information where available. |
 | [Export-IntunePolicyInventory.ps1](./Export-IntunePolicyInventory.ps1) | Inventory Intune configuration, compliance, scripts, remediations, app configuration, and app protection policies with assignment information. |
-| [Intune-GroupAssignments-GUI.ps1](./Intune-GroupAssignments-GUI.ps1) | Search for Intune policies and applications directly assigned to an Entra group or the built-in **All Users** / **All Devices** target. |
+| [Application-Inventory.ps1](./Application-Inventory.ps1) | Export a consolidated inventory of discovered applications from Intune, including application names, versions, publishers, platforms, and unique device counts. |
+| [Intune-GroupAssignments-GUI.ps1](./Intune-GroupAssignments-GUI.ps1) | Search for Intune policies and applications directly assigned to an Entra group or the built-in **All Users** / **All Devices** targets. |
 
 ### Autopilot and device provisioning
 
