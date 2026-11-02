@@ -25,6 +25,7 @@ This repository is a collection of standalone administrative scripts rather than
 | Script | Purpose |
 | --- | --- |
 | [Get-WindowsAutopilotInfoGP.ps1](./Get-WindowsAutopilotInfoGP.ps1) | Collect Windows Autopilot hardware hashes and device inventory centrally through a Group Policy computer startup script. |
+| [Get-WindowsAutopilotInfo-Blob.ps1](#collect-autopilot-hardware-hashes-using-azure-blob-storage) | Collect Autopilot hardware hashes and device inventory to Azure Blob Storage using a create-only SAS token and a Group Policy startup script. |
 | [Set-AutopilotLanguage.ps1](./Set-AutopilotLanguage.ps1) | Apply supported Nordic language, region, and time-zone settings based on Windows Autopilot policy data. |
 
 ### Endpoint cleanup and remediation
@@ -154,6 +155,30 @@ Designed for use as an **Active Directory computer startup script**. Collects Au
 **Before deployment:** replace the placeholder `$CentralShare = "\\SERVER\AutopilotCollection$"` in the script and ensure computer accounts have suitable access to the share and its destination folders.
 
 Local log: `C:\ProgramData\AutopilotCollection\AutopilotCollection.log`.
+
+<a id="collect-autopilot-hardware-hashes-using-azure-blob-storage"></a>
+
+### Collect Autopilot hardware hashes using Azure Blob Storage
+
+**File:** [Get-WindowsAutopilotInfo-Blob.ps1](./Get-WindowsAutopilotInfo-Blob.ps1)
+
+Designed as an **Active Directory Group Policy computer startup script** running as **SYSTEM**. Collects the Windows Autopilot hardware hash and device information, then uploads two serial-number-based CSV files directly to an existing Azure Blob Storage container using HTTPS and a **create-only SAS token**. No Azure PowerShell modules or interactive sign-in are required.
+
+Features include:
+
+- `<SerialNumber>-Hash.csv` containing serial number, Windows Product ID, hardware hash, and a **Group Tag** currently fixed to `Denmark`.
+- `<SerialNumber>-Inventory.csv` containing computer name, serial number, manufacturer, model, Windows version/build, logged-on user, and collection time.
+- An Azure Blob REST API upload with a SAS restricted to **Create (`c`) only**; existing blobs are never overwritten.
+- Retry handling for transient upload failures and local completion markers to avoid repeated successful uploads.
+- Local CSV files and troubleshooting logs retained under `C:\ProgramData\AutopilotCollection\`.
+
+**Before deployment:** configure `$BlobContainerUrl` and `$SasToken` in the script. Use an **existing blob container** and a short-lived, **container-scoped, HTTPS-only SAS** with exactly `Create (c)` permission (no read, write, list, or delete). Ensure endpoints can reach Azure Blob Storage over HTTPS, and protect the SAS as a bearer credential.
+
+```powershell
+.\Get-WindowsAutopilotInfo-Blob.ps1
+```
+
+Log file: `C:\ProgramData\AutopilotCollection\AutopilotCollection.log`. Successful uploads are marked locally and skipped on subsequent runs. **Note:** when a blob already exists, the script does not verify its contents; it treats the existing blob as uploaded successfully.
 
 ### Set Windows Autopilot language and time zone
 
