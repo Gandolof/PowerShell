@@ -18,6 +18,7 @@ This repository is a collection of standalone administrative scripts rather than
 | [Export-IntunePolicyInventory.ps1](./Export-IntunePolicyInventory.ps1) | Inventory Intune configuration, compliance, scripts, remediations, app configuration, and app protection policies with assignment information. |
 | [Application-Inventory.ps1](./Application-Inventory.ps1) | Export a consolidated inventory of discovered applications from Intune, including application names, versions, publishers, platforms, and unique device counts. |
 | [Intune-GroupAssignments-GUI.ps1](./Intune-GroupAssignments-GUI.ps1) | Search for Intune policies and applications directly assigned to an Entra group or the built-in **All Users** / **All Devices** targets. |
+| [AddUsersWithAppInstallFailuresToGroup.ps1](./AddUsersWithAppInstallFailuresToGroup.ps1) | Find users with failed Intune app installations and add eligible users to a specified Entra group, with a configurable limit. |
 
 ### Autopilot and device provisioning
 
@@ -32,6 +33,8 @@ This repository is a collection of standalone administrative scripts rather than
 | --- | --- |
 | [RemoveDuplicateShortcuts-Detect.ps1](./RemoveDuplicateShortcuts-Detect.ps1) | Detect desktop `.lnk` and `.url` shortcuts with recognized multilingual copy suffixes. |
 | [RemoveDuplicateShortcuts-Remediate.ps1](./RemoveDuplicateShortcuts-Remediate.ps1) | Delete recognized duplicate shortcuts only when the corresponding original exists; write a local log. |
+| [M365AppsUpdateBlockers-Detect.ps1](./M365AppsUpdateBlockers-Detect.ps1) | Detect Microsoft 365 Apps Click-to-Run update failures caused by running applications that veto shutdown. |
+| [M365AppsUpdateBlockers-Remediate.ps1](./M365AppsUpdateBlockers-Remediate.ps1) | Guide users through closing applications blocking Microsoft 365 Apps servicing, with document-safety checks and local logging. |
 | [XCS-RemoveUnwantedApps-Detect.ps1](./XCS-RemoveUnwantedApps-Detect.ps1) | Check a configured list of unwanted AppX, provisioned, Win32, and WinGet applications. |
 | [XCS-RemoveUnwantedApps-Remediate.ps1](./XCS-RemoveUnwantedApps-Remediate.ps1) | Framework for uninstalling specified applications using available removal methods. |
 
@@ -120,6 +123,28 @@ powershell.exe -NoProfile -STA -File '.\Intune-GroupAssignments-GUI.ps1'
 
 Requires Windows, WPF, and `Microsoft.Graph.Authentication`. This is **not** an effective-policy calculator: it does not resolve nested groups or all user/device membership and filter outcomes. Uses Graph beta endpoints. **Read-only.**
 
+### Add users with Intune app installation failures to an Entra group
+
+**File:** [AddUsersWithAppInstallFailuresToGroup.ps1](./AddUsersWithAppInstallFailuresToGroup.ps1)
+
+Identifies users with **failed installations of a specified Intune application** and adds eligible users to an Entra group. Uses the Microsoft Graph beta `getUserInstallStatusReport` endpoint and skips accounts that are already direct members of the target group.
+
+Features include:
+
+- Retrieves and pages through per-user installation failure results for a selected application.
+- Filters for users with a `FailedCount` greater than zero and removes duplicate results.
+- Checks existing group membership to avoid adding the same user twice.
+- Limits the number of **new** members added while still listing users skipped due to the limit.
+- Prints counts for failures, existing members, eligible users, successful additions, and skipped users.
+
+**Before running:** set `$AppId` and `$GroupId` in the script. `$MaxUsersToAdd` defaults to `5`; set it to `0` to process all eligible users.
+
+```powershell
+.\AddUsersWithAppInstallFailuresToGroup.ps1
+```
+
+Requires Microsoft Graph PowerShell authentication, group, and user cmdlets, with delegated permissions `DeviceManagementApps.Read.All`, `User.Read.All`, and `GroupMember.ReadWrite.All`. The script connects to Graph interactively and **modifies Entra group membership**. Uses a Graph beta report; review the target application, group, and addition limit before execution.
+
 ### Collect Autopilot hardware hashes using Group Policy
 
 **File:** [Get-WindowsAutopilotInfoGP.ps1](./Get-WindowsAutopilotInfoGP.ps1)
@@ -158,6 +183,30 @@ The remediation logs to:
 ```
 
 Replace the `COMPANY` placeholder as appropriate. For user-desktop cleanup, deploy in the **logged-on user's context**; changes to the public desktop may require additional permissions. Detection uses exit code `1` for detected duplicates or errors and `0` when compliant.
+
+### Resolve Microsoft 365 Apps update blockers
+
+**Files:** [Detection](./M365AppsUpdateBlockers-Detect.ps1) · [Remediation](./M365AppsUpdateBlockers-Remediate.ps1)
+
+An **Intune Remediations** pair for Microsoft 365 Apps Click-to-Run servicing that is blocked by open applications. The detection script examines the **five newest** user-context Click-to-Run log files in `%TEMP%` and evaluates the latest `Office.ClickToRun.ProcessKillerShutdown` event for a specific application-veto failure signature.
+
+Features include:
+
+- Detection returns exit code `1` for a matching blocker event and `0` otherwise.
+- An interactive **WPF dialog** guides the user through closing applications so servicing can continue.
+- On the first proceed, the remediation automatically closes selected communication applications and attempts to close Office applications through COM, checking saved state and AutoSave where available.
+- Applications with unconfirmed unsaved work are left open during the initial pass; a subsequent user-approved attempt requests normal window closure (`WM_CLOSE`) for remaining protected Office applications.
+- Detection and remediation write local troubleshooting information to the same log file.
+
+The scripts are designed to run in the **logged-on user's context** on Windows, with an interactive desktop available for the remediation dialog. This is not a silent SYSTEM-context cleanup and can close running applications; users should save their work before proceeding.
+
+Log file:
+
+```text
+%LOCALAPPDATA%\COMPANY\M365AppsUpdateRemediation.log
+```
+
+Replace the `COMPANY` placeholder in **both** scripts. Detection deliberately matches a narrow Click-to-Run log signature and may not identify every Office update failure. Review the application-close behavior and test with saved, unsaved, and AutoSave-enabled documents before production deployment.
 
 ### Remove unwanted applications (deprecated, containing legacy examples)
 
